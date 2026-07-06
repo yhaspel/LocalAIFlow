@@ -1,0 +1,21 @@
+[package]
+name = "laf-platform-macos"
+description = "macOS backends: AX / CGEvent / NSPasteboard text insertion, selection reading, permissions, doctor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+laf-core.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+crossbeam-channel.workspace = true
+core-foundation.workspace = true
+core-graphics.workspace = true
+objc2.workspace = true
+objc2-foundation = { workspace = true, features = ["NSString"] }
+objc2-app-kit = { workspace = true, features = ["NSPasteboard", "NSPasteboardItem"] }
+global-hotkey = "0.8"
+arboard.workspace = true
+libc.workspace = true

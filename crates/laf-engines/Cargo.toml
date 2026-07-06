@@ -1,0 +1,55 @@
+[package]
+name = "laf-engines"
+description = "Portable on-device engines: cpal audio, whisper.cpp STT, llama.cpp cleanup, Kokoro TTS, subprocess TTS fallbacks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["audio", "llm-ollama", "tts-system", "tts-piper"]
+# cpal capture + playback (CoreAudio / ALSA / PipeWire)
+audio = ["dep:cpal"]
+# whisper.cpp speech-to-text (per-OS accel via the target sections below)
+stt-whisper = ["dep:whisper-rs", "audio"]
+# Extra opt-in acceleration passthroughs
+whisper-coreml = ["stt-whisper", "whisper-rs/coreml"]
+whisper-cuda = ["stt-whisper", "whisper-rs/cuda"]
+whisper-vulkan = ["stt-whisper", "whisper-rs/vulkan"]
+# llama.cpp local LLM cleanup
+llm-llama = ["dep:llama-cpp-2", "dep:encoding_rs"]
+llm-llama-cuda = ["llm-llama", "llama-cpp-2/cuda"]
+llm-llama-metal = ["llm-llama"] # llama.cpp enables Metal by default on macOS
+# talk to a user-run Ollama on 127.0.0.1 (still fully local; opt-in at runtime)
+llm-ollama = ["dep:reqwest"]
+# Kokoro-82M ONNX text-to-speech (vendored port, see crates/laf-kokoro)
+tts-kokoro = ["dep:laf-kokoro", "audio"]
+# Piper subprocess TTS fallback (user-provided binary + voice)
+tts-piper = ["audio"]
+# OS built-in synthesizer fallback (`say` / speech-dispatcher / espeak-ng)
+tts-system = []
+
+[dependencies]
+laf-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+crossbeam-channel.workspace = true
+
+cpal = { workspace = true, optional = true }
+llama-cpp-2 = { workspace = true, optional = true }
+encoding_rs = { version = "0.8", optional = true }
+laf-kokoro = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true, features = ["blocking", "json"] }
+
+# Per-OS whisper.cpp acceleration is wired HERE (not in consumers): the same
+# `stt-whisper` feature gets Metal on macOS and OpenMP-optimized CPU on Linux
+# automatically; CUDA/Vulkan/CoreML remain opt-in via the features above.
+[target.'cfg(target_os = "macos")'.dependencies]
+whisper-rs = { workspace = true, optional = true, features = ["metal"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+whisper-rs = { workspace = true, optional = true, features = ["openmp"] }
+
+[dev-dependencies]
+tempfile = "3"

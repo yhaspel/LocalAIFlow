@@ -1,0 +1,31 @@
+# Vendored + ported from `kokoroxide` v0.1.5 (https://github.com/dhruv304c2/kokoroxide,
+# dual MIT/Apache-2.0 — see LICENSE-* in this directory).
+#
+# WHY VENDORED (documented deviation from the original plan of using the
+# published crate): kokoroxide 0.1.5 depends on `ort ^1.16`, and every 1.16.x
+# release has been yanked from crates.io, making the crate unresolvable.
+# We ported its ONNX session code to the maintained `ort` 2.x line and dropped
+# the WAV/playback/demo code we don't use. The espeak-ng G2P, Misaki phoneme
+# mapping, tokenizer, and voice-style logic are preserved verbatim.
+[package]
+name = "laf-kokoro"
+description = "Kokoro-82M ONNX TTS (vendored kokoroxide port on ort 2.x): espeak-ng G2P → Misaki phonemes → ONNX Runtime"
+version.workspace = true
+edition.workspace = true
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# ONNX Runtime binaries are fetched at BUILD time by ort-sys (pyke CDN) —
+# a build-machine concern only; the shipped application performs no runtime
+# network access. `load-dynamic` builds (dlopen a system libonnxruntime) are
+# possible for distro packagers: build with --no-default-features --features load-dynamic.
+ort = "=2.0.0-rc.12" # default features include download-binaries (build-time fetch)
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+default = []
+load-dynamic = ["ort/load-dynamic"]
+
+[build-dependencies]
+pkg-config = "0.3"

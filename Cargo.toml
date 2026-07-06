@@ -1,0 +1,108 @@
+# Local AI Flow — privacy-first, fully on-device dictation + TTS for macOS and Linux.
+#
+# Workspace layout:
+#   crates/laf-core            — platform-agnostic: engine traits, pipeline, cleanup, settings, models, doctor
+#   crates/laf-engines         — portable ML/audio engines: cpal capture, whisper.cpp STT, llama.cpp cleaner, Kokoro TTS
+#   crates/laf-platform-linux  — AT-SPI2 / Wayland / X11 insertion, portal+evdev hotkeys, Linux doctor
+#   crates/laf-platform-macos  — AX / CGEvent / NSPasteboard insertion, permissions, macOS doctor
+#   apps/desktop/src-tauri     — Tauri v2 shell: tray agent, HUD + Settings webviews, IPC commands
+[workspace]
+resolver = "2"
+members = [
+  "crates/laf-core",
+  "crates/laf-engines",
+  "crates/laf-kokoro",
+  "crates/laf-platform-linux",
+  "crates/laf-platform-macos",
+  "apps/desktop/src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Local AI Flow contributors"]
+repository = "https://github.com/localaiflow/localaiflow"
+rust-version = "1.82"
+
+[workspace.dependencies]
+# ---- shared plumbing (all permissively licensed; see LICENSES.md) ----
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "process", "fs", "io-util"] }
+crossbeam-channel = "0.5"
+dirs = "6"
+regex = "1"
+sha2 = "0.10"
+hex = "0.4"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
+futures-util = "0.3"
+async-trait = "0.1"
+
+# ---- engines (portable, both OSes) ----
+cpal = "0.18"                       # CoreAudio on macOS, ALSA/PipeWire on Linux (Apache-2.0)
+whisper-rs = "0.16"                 # whisper.cpp bindings (Unlicense; whisper.cpp itself MIT)
+llama-cpp-2 = "=0.1.146"            # llama.cpp bindings (MIT/Apache-2.0; llama.cpp MIT) — API moves fast, pin exact
+
+# ---- Linux platform ----
+zbus = { version = "5", features = ["tokio"] }
+ashpd = { version = "0.13", default-features = false, features = ["tokio"] }  # XDG portals incl. GlobalShortcuts (MIT)
+atspi = { version = "0.30", features = ["proxies", "connection", "zbus"] }    # AT-SPI2 a11y bus (MIT/Apache-2.0)
+x11rb = { version = "0.13", features = ["xtest"] }                            # XTEST synthetic input (MIT/Apache-2.0)
+evdev = "0.13"                                                                # /dev/input fallback hotkeys (MIT/Apache-2.0)
+arboard = { version = "3", features = ["wayland-data-control"] }              # clipboard incl. PRIMARY (MIT/Apache-2.0)
+
+# ---- macOS platform ----
+core-foundation = "0.10"
+core-graphics = "0.25"
+objc2 = "0.6"
+objc2-foundation = "0.3"
+objc2-app-kit = "0.3"
+libc = "0.2"
+
+# ---- app shell ----
+# macos-private-api: required for the transparent always-on-top HUD window on
+# macOS (matches app.macOSPrivateApi in tauri.conf.json). No effect on Linux.
+tauri = { version = "2", features = ["tray-icon", "image-png", "macos-private-api"] }
+tauri-build = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+
+# intra-workspace. laf-core's "online" feature (the ONLY network code) is
+# opt-in per consumer; the desktop app enables it through its own "online"
+# default feature so `--no-default-features` builds are network-free.
+laf-core = { path = "crates/laf-core", default-features = false }
+laf-kokoro = { path = "crates/laf-kokoro" }
+laf-engines = { path = "crates/laf-engines" }
+laf-platform-linux = { path = "crates/laf-platform-linux" }
+laf-platform-macos = { path = "crates/laf-platform-macos" }
+
+# NOTE on Kokoro TTS: the published `kokoroxide` crate is currently
+# unbuildable from crates.io (its `ort ^1.16` requirement is fully yanked
+# upstream), so its MIT/Apache-2.0 source is vendored in crates/laf-kokoro
+# and ported to the maintained ort 2.x line. See that crate's Cargo.toml.
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+# Keep dev artifacts small (debug info off; use `--profile dev-debug` locally
+# when you need symbols).
+[profile.dev]
+debug = 0
+
+[profile.dev-debug]
+inherits = "dev"
+debug = true
+
+# Faster iterative builds for the heavy C/C++ -sys crates.
+[profile.dev.package."whisper-rs-sys"]
+opt-level = 2
+[profile.dev.package."llama-cpp-sys-2"]
+opt-level = 2

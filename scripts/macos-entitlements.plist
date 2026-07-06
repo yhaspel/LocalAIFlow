@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Hardened-Runtime entitlements for Developer ID distribution.
+         Deliberately NOT sandboxed (com.apple.security.app-sandbox):
+         system-wide AX text insertion and posting CGEvents to other
+         applications are incompatible with the App Store sandbox. -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <!-- whisper.cpp/llama.cpp JIT-free; no allow-unsigned-executable-memory needed. -->
+</dict>
+</plist>

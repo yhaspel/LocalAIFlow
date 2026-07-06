@@ -1,0 +1,33 @@
+[package]
+name = "laf-core"
+description = "Local AI Flow shared core: engine traits, dictation pipeline, cleanup, settings, model manager"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+default = ["online"]
+# "online" gates the ONLY networking code in the entire application:
+# ModelManager::download(), used exclusively for explicit, user-triggered
+# model downloads from Hugging Face. Build with --no-default-features to
+# produce a binary that is physically incapable of touching the network
+# (the "Fully Offline" build; the runtime toggle exists as well).
+online = ["dep:reqwest", "dep:futures-util"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+crossbeam-channel.workspace = true
+dirs.workspace = true
+regex.workspace = true
+sha2.workspace = true
+hex.workspace = true
+reqwest = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

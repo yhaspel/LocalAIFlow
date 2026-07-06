@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Local AI Flow</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav>
+      <div class="brand">Local AI Flow<small>on-device dictation &amp; TTS</small></div>
+      <button data-tab="general" class="active">General</button>
+      <button data-tab="hotkeys">Hotkeys</button>
+      <button data-tab="models">Models</button>
+      <button data-tab="dictionary">Dictionary</button>
+      <button data-tab="tts">Text-to-Speech</button>
+      <button data-tab="doctor">Setup Check</button>
+      <button data-tab="debug">Debug</button>
+    </nav>
+    <main>
+      <div id="onboarding" class="banner" style="display:none">
+        <h3>Welcome — two quick steps</h3>
+        <div id="ob-permissions"></div>
+        <div class="actions">
+          <button id="ob-download" class="primary">Download recommended models (~2.8 GB)</button>
+          <button id="ob-offline">I'll stay fully offline / use bundled models</button>
+          <button id="ob-done">Done — hide this</button>
+        </div>
+        <p class="sub" style="margin-top:8px">Downloads come from Hugging Face over HTTPS with pinned checksums — this is the only network access in the entire app, and it never happens without your click.</p>
+      </div>
+
+      <section class="tab visible" id="tab-general">
+        <h2>General</h2>
+        <p class="sub">Dictation behavior and language.</p>
+        <div class="row"><div class="info"><b>Default mode</b><span>Formatting applied after each dictation</span></div><select id="s-mode"></select></div>
+        <div class="row"><div class="info"><b>Language</b><span>“auto” detects per utterance</span></div>
+          <select id="s-language">
+            <option value="auto">Auto-detect</option><option value="en">English</option><option value="de">German</option><option value="fr">French</option><option value="es">Spanish</option><option value="it">Italian</option><option value="pt">Portuguese</option><option value="nl">Dutch</option><option value="pl">Polish</option><option value="ja">Japanese</option><option value="zh">Chinese</option><option value="ko">Korean</option><option value="ru">Russian</option><option value="uk">Ukrainian</option><option value="he">Hebrew</option><option value="ar">Arabic</option><option value="hi">Hindi</option>
+          </select></div>
+        <div class="row"><div class="info"><b>Microphone</b><span>Input device for dictation</span></div><select id="s-device"></select></div>
+        <div class="row"><div class="info"><b>Cleanup engine</b><span>How transcripts are formatted</span></div>
+          <select id="s-cleaner">
+            <option value="auto">Auto (LLM when available)</option>
+            <option value="deterministic">Deterministic only (fastest)</option>
+            <option value="local_llm">Local LLM (llama.cpp)</option>
+            <option value="ollama">Ollama on this machine</option>
+            <option value="apple_fm">Apple Foundation Models (macOS 26+)</option>
+          </select></div>
+        <div class="row"><div class="info"><b>STT model</b><span>Whisper model used for recognition</span></div><select id="s-sttmodel"></select></div>
+        <div class="row"><div class="info"><b>Cleanup model</b><span>GGUF model for the LLM tier</span></div><select id="s-llmmodel"></select></div>
+        <div class="row"><div class="info"><b>Insert incrementally</b><span>Type each finalized segment instead of once at the end</span></div><input type="checkbox" id="s-incremental" /></div>
+        <div class="row"><div class="info"><b>Show HUD</b><span>Floating waveform + live transcript while dictating</span></div><input type="checkbox" id="s-hud" /></div>
+        <div class="row"><div class="info"><b>Launch at login</b><span>Start the agent with your session</span></div><input type="checkbox" id="s-autostart" /></div>
+        <div class="row"><div class="info"><b>Fully Offline mode</b><span>Refuse ALL networking (model downloads included)</span></div><input type="checkbox" id="s-offline" /></div>
+        <div class="row"><div class="info"><b>Unload idle models</b><span>Free RAM after N seconds idle (0 = never)</span></div><input type="number" id="s-unload" min="0" step="30" style="width:110px" /></div>
+      </section>
+
+      <section class="tab" id="tab-hotkeys">
+        <h2>Hotkeys</h2>
+        <p class="sub">Click a field, then press the combination. Uses physical keys (layout-independent).</p>
+        <div class="row"><div class="info"><b>Toggle dictation</b><span>Press to start, press again to stop &amp; insert</span></div><input class="hotkey-input" id="hk-toggle" readonly /></div>
+        <div class="row"><div class="info"><b>Push-to-talk</b><span>Hold to dictate, release to insert</span></div><input class="hotkey-input" id="hk-ptt" readonly /></div>
+        <div class="row"><div class="info"><b>Push-to-talk enabled</b><span>Disable if the hold key conflicts</span></div><input type="checkbox" id="hk-ptt-on" /></div>
+        <div class="row"><div class="info"><b>Read selection aloud</b><span>Speaks the selected text in any app</span></div><input class="hotkey-input" id="hk-read" readonly /></div>
+        <div class="row"><div class="info"><b>Stop speaking</b><span>Stops TTS playback</span></div><input class="hotkey-input" id="hk-stop" readonly /></div>
+        <p class="sub" id="hk-warnings"></p>
+      </section>
+
+      <section class="tab" id="tab-models">
+        <h2>Models</h2>
+        <p class="sub">Everything runs on this machine. Downloads are explicit, checksum-verified, and resumable by re-running.</p>
+        <div id="models-list"></div>
+      </section>
+
+      <section class="tab" id="tab-dictionary">
+        <h2>Custom dictionary</h2>
+        <p class="sub">Names, jargon and spellings. Applied after cleanup and fed to the recognizer as vocabulary hints.</p>
+        <table id="dict-table">
+          <thead><tr><th>Heard as</th><th>Replace with</th><th>Case-sensitive</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div style="margin-top:10px"><button id="dict-add">Add entry</button></div>
+      </section>
+
+      <section class="tab" id="tab-tts">
+        <h2>Text-to-Speech</h2>
+        <p class="sub">Reads the current selection with a local neural voice (Kokoro-82M), with Piper and the system voice as fallbacks.</p>
+        <div class="row"><div class="info"><b>Engine</b><span>Preferred synthesizer</span></div>
+          <select id="tts-engine"><option value="kokoro">Kokoro (neural, local)</option><option value="piper">Piper (local)</option><option value="system">System voice</option></select></div>
+        <div class="row"><div class="info"><b>Voice</b><span>Installed voices for the selected engine</span></div><select id="tts-voice"></select></div>
+        <div class="row"><div class="info"><b>Rate</b><span>1.0 = normal speed</span></div>
+          <div><input type="range" id="tts-rate" min="0.5" max="2" step="0.05" style="width:180px" /> <span id="tts-rate-val" class="mono"></span></div></div>
+        <div class="row"><div class="info"><b>Try it</b><span>Select some text anywhere, then</span></div><button id="tts-test">Read selection now</button></div>
+      </section>
+
+      <section class="tab" id="tab-doctor">
+        <h2>Setup check</h2>
+        <p class="sub">Everything this environment can and can't do, with exact fixes. Also available as <span class="mono">local-ai-flow --doctor</span>.</p>
+        <button id="doctor-refresh">Re-run checks</button>
+        <div id="doctor-list" style="margin-top:12px"></div>
+      </section>
+
+      <section class="tab" id="tab-debug">
+        <h2>Debug</h2>
+        <p class="sub">Local-only timings (never leaves this machine — there is no telemetry).</p>
+        <button id="lat-refresh">Refresh</button>
+        <table id="lat-table"><thead><tr><th>Stage</th><th>count</th><th>last</th><th>p50</th><th>p95</th></tr></thead><tbody></tbody></table>
+        <h2 style="margin-top:22px">Event log</h2>
+        <div id="evlog" class="mono" style="max-height:220px;overflow:auto;background:var(--panel);padding:10px;border-radius:8px"></div>
+        <p class="sub" id="appinfo"></p>
+      </section>
+
+      <div class="savebar">
+        <button id="save" class="primary">Save changes</button>
+        <button id="dictate-now">Dictate now (test)</button>
+        <span id="save-status" class="sub" style="align-self:center"></span>
+      </div>
+    </main>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

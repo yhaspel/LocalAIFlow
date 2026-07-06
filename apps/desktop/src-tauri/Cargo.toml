@@ -1,0 +1,47 @@
+[package]
+name = "local-ai-flow"
+description = "Local AI Flow — privacy-first on-device dictation + TTS (menu-bar/tray agent)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+default-run = "local-ai-flow"
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[features]
+default = ["stt-whisper", "llm-llama", "tts-kokoro", "online"]
+# Gates the model-download code (laf-core's only network path). Omit for a
+# build that is physically incapable of any networking.
+online = ["laf-core/online"]
+stt-whisper = ["laf-engines/stt-whisper"]
+llm-llama = ["laf-engines/llm-llama"]
+tts-kokoro = ["laf-engines/tts-kokoro"]
+whisper-coreml = ["laf-engines/whisper-coreml"]
+cuda = ["laf-engines/whisper-cuda", "laf-engines/llm-llama-cuda"]
+vulkan = ["laf-engines/whisper-vulkan"]
+# Build without ANY network code (Fully-Offline build; runtime toggle exists too).
+offline-build = []
+
+[dependencies]
+laf-core.workspace = true
+laf-engines.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+crossbeam-channel.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+
+tauri.workspace = true
+tauri-plugin-autostart = "2"
+tauri-plugin-single-instance = "2"
+
+# Per-OS whisper acceleration (Metal on macOS, OpenMP CPU on Linux) is wired
+# inside laf-engines' target-conditional dependencies — nothing needed here.
+[target.'cfg(target_os = "linux")'.dependencies]
+laf-platform-linux.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+laf-platform-macos.workspace = true

@@ -1,0 +1,24 @@
+[package]
+name = "laf-platform-linux"
+description = "Linux backends: AT-SPI2 / Wayland / X11 text insertion, portal + evdev hotkeys, selection reading, doctor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+laf-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+crossbeam-channel.workspace = true
+tokio.workspace = true
+zbus.workspace = true
+atspi.workspace = true
+ashpd = { workspace = true, features = ["global_shortcuts"] }
+x11rb.workspace = true
+evdev.workspace = true
+arboard.workspace = true
+global-hotkey = "0.8"
+libc.workspace = true
+futures-util.workspace = true

@@ -1,0 +1,8 @@
+# Local AI Flow — allow members of the "input" group to use /dev/uinput,
+# which ydotoold needs for compositor-independent typing on Wayland.
+#
+# Install:
+#   sudo cp 99-localaiflow-uinput.rules /etc/udev/rules.d/
+#   sudo usermod -aG input $USER      # then log out and back in
+#   sudo udevadm control --reload && sudo udevadm trigger
+KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput"

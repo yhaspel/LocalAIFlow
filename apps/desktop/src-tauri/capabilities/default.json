@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Settings + HUD webviews: core IPC only (app commands are not permission-gated; no remote access of any kind).",
+  "windows": ["settings", "hud"],
+  "permissions": ["core:default"]
+}

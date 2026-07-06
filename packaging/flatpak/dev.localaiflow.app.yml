@@ -1,0 +1,59 @@
+# Flatpak manifest for Local AI Flow.
+#
+# ─── READ THIS FIRST: sandbox caveats ────────────────────────────────────────
+# Flatpak's sandbox blocks several injection/hotkey paths this app relies on:
+#   • /dev/uinput and raw /dev/input access are unavailable → the ydotool
+#     typing rung and the evdev hotkey fallback DO NOT work under Flatpak.
+#   • Spawning host binaries (wtype/ydotool/xdotool) requires
+#     --talk-name=org.freedesktop.Flatpak + flatpak-spawn --host (not enabled
+#     by default here).
+# What DOES work under Flatpak:
+#   • GlobalShortcuts portal hotkeys (KDE, GNOME 48+) — press & release.
+#   • AT-SPI2 insertion (the a11y bus is proxied by the portal stack).
+#   • Clipboard-paste insertion on X11 (XTEST via the X11 socket).
+#   • Audio via PipeWire, and all on-device inference.
+# For the full capability matrix (especially GNOME Wayland typing), prefer the
+# AppImage or .deb. This manifest is provided for completeness and for
+# portal-first environments (KDE Wayland works well).
+# ──────────────────────────────────────────────────────────────────────────────
+app-id: dev.localaiflow.app
+runtime: org.gnome.Platform
+runtime-version: "47"
+sdk: org.gnome.Sdk
+command: local-ai-flow
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --socket=pulseaudio          # PipeWire's Pulse shim; audio capture + playback
+  - --device=dri
+  - --talk-name=org.a11y.Bus     # AT-SPI2 insertion
+  - --talk-name=org.freedesktop.portal.Desktop  # GlobalShortcuts portal
+  # Model downloads (explicit, user-triggered) need network; remove this line
+  # for a fully-offline flatpak with pre-bundled models:
+  - --share=network
+  - --filesystem=xdg-data/LocalAIFlow:create
+modules:
+  - name: espeak-ng
+    buildsystem: autotools
+    config-opts: ["--without-pcaudiolib", "--without-klatt", "--without-speechplayer"]
+    sources:
+      - type: archive
+        url: https://github.com/espeak-ng/espeak-ng/releases/download/1.52.0/espeak-ng-1.52.0.tar.gz
+        # PLACEHOLDER — copy the real sha256 from the espeak-ng 1.52.0 release
+        # page before building; flatpak-builder refuses mismatches.
+        sha256: 0000000000000000000000000000000000000000000000000000000000000000
+  - name: local-ai-flow
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 local-ai-flow /app/bin/local-ai-flow
+      - install -Dm644 dev.localaiflow.app.desktop /app/share/applications/dev.localaiflow.app.desktop
+      - install -Dm644 icon.png /app/share/icons/hicolor/256x256/apps/dev.localaiflow.app.png
+    sources:
+      - type: file
+        path: ../../target/release/local-ai-flow
+      - type: file
+        path: ../localaiflow.desktop
+        dest-filename: dev.localaiflow.app.desktop
+      - type: file
+        path: ../../apps/desktop/src-tauri/icons/icon.png

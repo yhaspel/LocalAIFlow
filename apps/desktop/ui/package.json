@@ -1,0 +1,14 @@
+{
+  "name": "local-ai-flow-ui",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Settings + HUD webviews for Local AI Flow. Plain TypeScript, no framework, no runtime deps; talks to the Rust core via the Tauri global (`withGlobalTauri`).",
+  "scripts": {
+    "build": "esbuild src/app.ts src/hud.ts --outdir=dist --format=iife --target=safari15 && cp -f src/../dist/styles.css dist/styles.css || true",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  }
+}

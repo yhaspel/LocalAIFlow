@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Settings + HUD webviews: core IPC only (app commands are not permission-gated; no remote access of any kind).","local":true,"windows":["settings","hud"],"permissions":["core:default"]}}

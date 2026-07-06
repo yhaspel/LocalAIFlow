@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Local AI Flow
+GenericName=On-device dictation and text-to-speech
+Comment=Speak into any app; clean text is typed for you. 100% local.
+Exec=local-ai-flow
+Icon=dev.localaiflow.app
+Terminal=false
+Categories=Utility;Accessibility;AudioVideo;
+Keywords=dictation;speech;voice;whisper;tts;accessibility;
+X-GNOME-UsesNotifications=false
+StartupNotify=false
