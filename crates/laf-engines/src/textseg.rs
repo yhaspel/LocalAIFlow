@@ -29,10 +29,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn merges_short_sentences() {
-        let c = tts_chunks("Hi. Ok. This is a considerably longer sentence for testing.", 20);
+    fn merges_short_sentences_and_splits_on_target() {
+        // Short leading sentences merge into the first chunk; each chunk
+        // closes once it reaches the target size.
+        let c = tts_chunks(
+            "Hi. Ok. This is a considerably longer sentence for testing. And here is a second long sentence to speak.",
+            20,
+        );
         assert_eq!(c.len(), 2);
-        assert_eq!(c[0], "Hi. Ok. This is a considerably longer sentence for testing.".split(" This").next().map(|s| s.to_string()).unwrap_or_default().trim());
+        assert!(c[0].starts_with("Hi. Ok."));
+        assert!(c[1].starts_with("And here"));
     }
 
     #[test]

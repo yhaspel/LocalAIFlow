@@ -69,10 +69,15 @@ impl KokoroTTS {
         let TTSConfig { model_path, tokenizer_path, max_length, sample_rate, intra_threads } =
             config;
 
+        // ort 2 builder methods return a recoverable-error Result whose error
+        // type carries the builder; map to our error via Display.
         let mut builder = Session::builder()?
-            .with_optimization_level(GraphOptimizationLevel::Level3)?;
+            .with_optimization_level(GraphOptimizationLevel::Level3)
+            .map_err(|e| KokoroError::Other(format!("onnx builder: {e}")))?;
         if intra_threads > 0 {
-            builder = builder.with_intra_threads(intra_threads)?;
+            builder = builder
+                .with_intra_threads(intra_threads)
+                .map_err(|e| KokoroError::Other(format!("onnx builder: {e}")))?;
         }
         let session = builder.commit_from_file(&model_path)?;
 

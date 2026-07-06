@@ -30,6 +30,9 @@ pub struct LinuxHotkeys {
     backend: Backend,
 }
 
+/// The payloads are RAII guards: their `Drop` impls unregister grabs / stop
+/// portal sessions / join evdev threads. They're held, not read.
+#[allow(dead_code)]
 enum Backend {
     None,
     X11(X11Backend),

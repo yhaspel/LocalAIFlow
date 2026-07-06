@@ -15,8 +15,8 @@ stt-whisper = ["dep:whisper-rs", "audio"]
 whisper-coreml = ["stt-whisper", "whisper-rs/coreml"]
 whisper-cuda = ["stt-whisper", "whisper-rs/cuda"]
 whisper-vulkan = ["stt-whisper", "whisper-rs/vulkan"]
-# llama.cpp local LLM cleanup
-llm-llama = ["dep:llama-cpp-2", "dep:encoding_rs"]
+# llama.cpp local LLM cleanup (sys crate pinned in lockstep with the wrapper)
+llm-llama = ["dep:llama-cpp-2", "dep:llama-cpp-sys-2", "dep:encoding_rs"]
 llm-llama-cuda = ["llm-llama", "llama-cpp-2/cuda"]
 llm-llama-metal = ["llm-llama"] # llama.cpp enables Metal by default on macOS
 # talk to a user-run Ollama on 127.0.0.1 (still fully local; opt-in at runtime)
@@ -38,6 +38,7 @@ crossbeam-channel.workspace = true
 
 cpal = { workspace = true, optional = true }
 llama-cpp-2 = { workspace = true, optional = true }
+llama-cpp-sys-2 = { workspace = true, optional = true }
 encoding_rs = { version = "0.8", optional = true }
 laf-kokoro = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true, features = ["blocking", "json"] }

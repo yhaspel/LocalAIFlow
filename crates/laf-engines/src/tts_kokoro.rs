@@ -60,7 +60,7 @@ impl KokoroEngine {
             self.model_path.to_string_lossy().as_ref(),
             self.tokenizer_path.to_string_lossy().as_ref(),
         )
-        .with_sample_rate(KOKORO_RATE as i32)
+        .with_sample_rate(KOKORO_RATE)
         .with_max_tokens_length(512);
         let tts = KokoroTTS::with_config(config)
             .map_err(|e| EngineError::Tts(format!("failed to load Kokoro: {e}")))?;

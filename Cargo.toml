@@ -47,6 +47,7 @@ async-trait = "0.1"
 cpal = "0.18"                       # CoreAudio on macOS, ALSA/PipeWire on Linux (Apache-2.0)
 whisper-rs = "0.16"                 # whisper.cpp bindings (Unlicense; whisper.cpp itself MIT)
 llama-cpp-2 = "=0.1.146"            # llama.cpp bindings (MIT/Apache-2.0; llama.cpp MIT) — API moves fast, pin exact
+llama-cpp-sys-2 = "=0.1.146"        # keep -sys in lockstep (newer sys drops symbols the 0.1.146 wrapper uses)
 
 # ---- Linux platform ----
 zbus = { version = "5", features = ["tokio"] }

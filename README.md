@@ -139,8 +139,11 @@ local-ai-flow --doctor
 
 ONNX Runtime note: building with the default `tts-kokoro` feature downloads
 the onnxruntime **build-time** static libs via the `ort` crate (pyke CDN) —
-that's a build-machine concern, not an app-runtime one. Distro packagers can
-use `--features laf-kokoro/load-dynamic` to link a system onnxruntime instead.
+that's a build-machine concern, not an app-runtime one. Those prebuilt libs
+target glibc ≥ 2.38 / gcc-13 (Ubuntu 24.04+, Fedora 39+, Debian 13+). On
+older distros (e.g. Ubuntu 22.04) either build without `tts-kokoro`
+(Piper/system TTS still work) or use `--features laf-kokoro/load-dynamic`
+to dlopen a distro/system onnxruntime at runtime instead.
 
 ## Models
 

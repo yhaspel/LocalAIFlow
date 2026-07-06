@@ -85,12 +85,14 @@ impl SpeechToText for WhisperEngine {
         EngineInfo {
             name: "whisper",
             model: Some(self.model_label.clone()),
-            accelerated: cfg!(any(
-                feature = "whisper-metal",
-                feature = "whisper-coreml",
-                feature = "whisper-cuda",
-                feature = "whisper-vulkan"
-            )),
+            // Metal is enabled per-target in Cargo.toml (macOS builds always
+            // have it); these cfgs cover the opt-in accelerators.
+            accelerated: cfg!(target_os = "macos")
+                || cfg!(any(
+                    feature = "whisper-coreml",
+                    feature = "whisper-cuda",
+                    feature = "whisper-vulkan"
+                )),
         }
     }
 
@@ -202,7 +204,7 @@ fn worker_loop(
         Ok(text.trim().to_string())
     };
 
-    let mut finalize_segment =
+    let finalize_segment =
         |state: &mut whisper_rs::WhisperState, buffer: &mut Vec<f32>, offset: &mut u64, decoded_upto: &mut usize| {
             if (buffer.len() as f32) < MIN_DECODE_SECS * STT_SAMPLE_RATE as f32 {
                 *offset += (buffer.len() as u64 * 1000) / STT_SAMPLE_RATE as u64;
