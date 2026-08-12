@@ -317,7 +317,16 @@ impl Controller {
     fn stop_dictation(&mut self) {
         let Some(mut session) = self.session.take() else { return };
         self.engines.capture.stop();
-        self.audio_rx = None;
+        // Feed any audio still sitting in the channel before finalizing, so the
+        // tail of the utterance (the last word plus the trailing silence
+        // whisper uses to segment) is not clipped. `capture.stop()` has already
+        // joined the capture thread, so no further frames can arrive after this
+        // drain; the loop terminates once the channel is empty/disconnected.
+        if let Some(rx) = self.audio_rx.take() {
+            while let Ok(frame) = rx.try_recv() {
+                session.feed(&frame.samples);
+            }
+        }
         self.stopped_at = Some(Instant::now());
         self.set_phase(Phase::Processing);
 
@@ -360,10 +369,16 @@ impl Controller {
     }
 
     fn cancel_dictation(&mut self) {
-        if let Some(mut session) = self.session.take() {
+        if let Some(session) = self.session.take() {
             self.engines.capture.stop();
             self.audio_rx = None;
-            let _ = session.finalize();
+            // Drop the session WITHOUT finalizing. Cancel must be immediate and
+            // discard everything; `finalize()` would force a full (and, on
+            // cancel, pointless) decode of all buffered audio before returning,
+            // blocking the controller thread for seconds on a long utterance.
+            // Dropping hangs up the worker's command channel so it exits at its
+            // next `recv` without decoding.
+            drop(session);
         }
         self.finals.clear();
         self.inserted_segments = 0;

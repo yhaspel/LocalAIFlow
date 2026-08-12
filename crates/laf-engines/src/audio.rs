@@ -298,7 +298,17 @@ pub fn open_playback(src_rate: u32) -> EngineResult<(PcmWriter, PcmControl)> {
                 let cb_queue = queue.clone();
                 let cb_done = done.clone();
                 let cb_drained = drained.clone();
-                let err_fn = |e| tracing::error!("output stream error: {e}");
+                let err_drained = drained.clone();
+                let err_fn = move |e| {
+                    tracing::error!("output stream error: {e}");
+                    // If the output device fails mid-playback (headset
+                    // disconnects, device unplugged) the data callback stops
+                    // firing and `drained` would never be set — leaving
+                    // `is_finished()` false forever and the pipeline stuck in
+                    // the Speaking phase (also gating idle model unload). Mark
+                    // it drained here so the handle reports finished.
+                    err_drained.store(true, Ordering::SeqCst);
+                };
                 let stream = device.build_output_stream(
                     stream_cfg,
                     move |out: &mut [f32], _: &cpal::OutputCallbackInfo| {

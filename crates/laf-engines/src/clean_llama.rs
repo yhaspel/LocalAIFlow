@@ -98,8 +98,16 @@ impl LlamaCleaner {
                 tokens.len()
             )));
         }
-        // Output budget: cleanup never legitimately doubles the input.
-        let max_out = (tokens.len() / 2 + 96).min((self.n_ctx as usize) - tokens.len() - 8);
+        // Output budget. Cleanup output is roughly the SAME length as the
+        // input (fillers trimmed; punctuation/capitalization and per-mode
+        // formatting add a little), so the cap must be ≳ the input length or a
+        // long dictation gets truncated mid-sentence. Allow ~1.25× input plus a
+        // margin — above normal cleanup output, still comfortably under "double
+        // the input" to bound runaway generation, and always within the context
+        // window. (Was `tokens.len() / 2 + 96`, i.e. HALF the input, which
+        // silently cut the tail off any dictation longer than ~190 tokens.)
+        let max_out =
+            (tokens.len() + tokens.len() / 4 + 96).min((self.n_ctx as usize) - tokens.len() - 8);
 
         let mut batch = LlamaBatch::new(self.n_ctx as usize, 1);
         let last_index = tokens.len() as i32 - 1;

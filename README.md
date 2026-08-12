@@ -29,8 +29,10 @@ workspace contains exactly **one** network code path:
 * `crates/laf-core/src/models.rs` (`ModelManager::download`, behind the
   `online` cargo feature): downloads model weights from `huggingface.co` over
   HTTPS **only when you click Download** (or the onboarding button). Every
-  file's SHA-256 and size are pinned in the source and verified during
-  streaming; mismatches are deleted.
+  model-weight file's SHA-256 and size are pinned in the source and verified
+  during streaming; mismatches are deleted. The one small non-LFS text asset
+  without an upstream-published hash (the Kokoro tokenizer) records its hash on
+  first download for later `Verify` audits.
 
 The only other socket the app can open is to `127.0.0.1:11434` **if** you
 switch the cleanup engine to "Ollama on this machine" — a server you run
@@ -43,8 +45,11 @@ Fully Offline operation, two layers:
    Use pre-bundled models (place them under the app's `resources/models/`, or
    drop files into the models folder shown in Settings → Debug).
 2. **Offline build**: `cargo build --release --no-default-features
-   --features stt-whisper,llm-llama,tts-kokoro` produces a binary with the
-   download code (and reqwest) **compiled out entirely**.
+   --features stt-whisper,llm-llama,tts-kokoro` compiles out the model-download
+   code path entirely (laf-core's `online` feature). The only networking code
+   left in such a build is the optional Ollama cleanup client, which is
+   hard-restricted to loopback (`127.0.0.1`) at construction and cannot reach
+   the public internet — it talks only to a server you run yourself.
 
 ## Architecture
 

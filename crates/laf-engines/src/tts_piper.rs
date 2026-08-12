@@ -10,10 +10,10 @@ use crate::audio::{open_playback, PcmControl};
 use laf_core::traits::{SpeechSynthesizer, TtsOptions, TtsPlayback};
 use laf_core::types::{EngineError, EngineInfo, EngineResult, VoiceInfo};
 use std::io::Read;
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::path::{Path, PathBuf};
+use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub struct PiperTts {
     piper_bin: Option<PathBuf>,
@@ -44,7 +44,7 @@ impl PiperTts {
 
     /// Sample rate from the voice's JSON config (piper convention:
     /// `<voice>.onnx.json`, `audio.sample_rate`).
-    fn voice_rate(voice: &PathBuf) -> u32 {
+    fn voice_rate(voice: &Path) -> u32 {
         let cfg = voice.with_extension("onnx.json");
         std::fs::read_to_string(cfg)
             .ok()
@@ -58,13 +58,16 @@ impl PiperTts {
 struct PiperPlayback {
     control: PcmControl,
     child_done: Arc<AtomicBool>,
-    kill: Option<Box<dyn FnOnce() + Send>>,
+    /// Shared with the reader thread: whoever wins takes the child and reaps it
+    /// (reader on normal EOF, `stop` on cancel) so it never lingers as a zombie.
+    child: Arc<Mutex<Option<Child>>>,
 }
 
 impl TtsPlayback for PiperPlayback {
     fn stop(&mut self) {
-        if let Some(k) = self.kill.take() {
-            k();
+        if let Some(mut c) = self.child.lock().expect("piper child lock").take() {
+            let _ = c.kill();
+            let _ = c.wait();
         }
         self.control.stop();
     }
@@ -101,21 +104,31 @@ impl SpeechSynthesizer for PiperTts {
             .spawn()
             .map_err(|e| EngineError::Tts(format!("failed to start piper: {e}")))?;
 
-        {
-            use std::io::Write;
-            let mut stdin = child.stdin.take().ok_or_else(|| EngineError::Tts("piper stdin".into()))?;
-            stdin
-                .write_all(text.as_bytes())
-                .and_then(|_| stdin.write_all(b"\n"))
-                .map_err(|e| EngineError::Tts(format!("piper stdin write: {e}")))?;
-            // Drop closes stdin → piper synthesizes and exits.
-        }
-
-        let (writer, control) = open_playback(rate)?;
+        let mut stdin = child.stdin.take().ok_or_else(|| EngineError::Tts("piper stdin".into()))?;
         let mut stdout =
             child.stdout.take().ok_or_else(|| EngineError::Tts("piper stdout".into()))?;
+        let (writer, control) = open_playback(rate)?;
+
+        // Feed piper's stdin on its OWN thread. piper starts emitting raw PCM to
+        // stdout as soon as it has a sentence; writing a large selection
+        // synchronously here could fill piper's stdout pipe (piper then blocks
+        // writing it and stops reading stdin) before we finish writing stdin —
+        // a classic pipe deadlock. Dropping stdin at the end signals EOF so
+        // piper synthesizes the tail and exits.
+        let text_owned = text.to_string();
+        std::thread::Builder::new()
+            .name("laf-piper-write".into())
+            .spawn(move || {
+                use std::io::Write;
+                let _ = stdin.write_all(text_owned.as_bytes()).and_then(|_| stdin.write_all(b"\n"));
+                // stdin dropped here → EOF to piper.
+            })
+            .map_err(|e| EngineError::Tts(format!("spawn piper writer: {e}")))?;
+
+        let child = Arc::new(Mutex::new(Some(child)));
         let child_done = Arc::new(AtomicBool::new(false));
         let done2 = child_done.clone();
+        let child_for_reader = child.clone();
         std::thread::Builder::new()
             .name("laf-piper-read".into())
             .spawn(move || {
@@ -133,15 +146,16 @@ impl SpeechSynthesizer for PiperTts {
                     }
                 }
                 writer.finish();
+                // stdout EOF means piper is exiting: reap it so a completed read
+                // doesn't leave a zombie process (this is a long-running agent).
+                if let Some(mut c) = child_for_reader.lock().expect("piper child lock").take() {
+                    let _ = c.wait();
+                }
                 done2.store(true, Ordering::SeqCst);
             })
             .map_err(|e| EngineError::Tts(format!("spawn piper reader: {e}")))?;
 
-        let killer: Box<dyn FnOnce() + Send> = Box::new(move || {
-            let _ = child.kill();
-            let _ = child.wait();
-        });
-        Ok(Box::new(PiperPlayback { control, child_done, kill: Some(killer) }))
+        Ok(Box::new(PiperPlayback { control, child_done, child }))
     }
 
     fn voices(&self) -> Vec<VoiceInfo> {

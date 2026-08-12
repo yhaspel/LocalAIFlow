@@ -55,7 +55,7 @@ fn keycode_for(conn: &impl Connection, keysym: u32) -> EngineResult<Option<u8>> 
         .map_err(|e| EngineError::Insertion(format!("keyboard mapping reply: {e}")))?;
     let per = mapping.keysyms_per_keycode as usize;
     for (i, chunk) in mapping.keysyms.chunks(per).enumerate() {
-        if chunk.iter().any(|&s| s == keysym) {
+        if chunk.contains(&keysym) {
             return Ok(Some(min_kc + i as u8));
         }
     }
