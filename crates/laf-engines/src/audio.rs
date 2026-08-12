@@ -26,7 +26,12 @@ pub struct CpalCapture {
 
 impl CpalCapture {
     pub fn new() -> Self {
-        Self { device_name: None, stop_tx: None, worker: None, running: Arc::new(AtomicBool::new(false)) }
+        Self {
+            device_name: None,
+            stop_tx: None,
+            worker: None,
+            running: Arc::new(AtomicBool::new(false)),
+        }
     }
 }
 
@@ -80,8 +85,10 @@ impl AudioCapture for CpalCapture {
                 };
                 let sample_format = supported.sample_format();
                 let stream_cfg: cpal::StreamConfig = supported.config();
-                let resampler =
-                    Arc::new(Mutex::new(Resampler::new(stream_cfg.sample_rate, stream_cfg.channels)));
+                let resampler = Arc::new(Mutex::new(Resampler::new(
+                    stream_cfg.sample_rate,
+                    stream_cfg.channels,
+                )));
                 let acc: Arc<Mutex<Vec<f32>>> =
                     Arc::new(Mutex::new(Vec::with_capacity(FRAME_SAMPLES_16K * 2)));
 

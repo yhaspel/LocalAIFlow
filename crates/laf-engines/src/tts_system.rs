@@ -80,7 +80,11 @@ impl SpeechSynthesizer for SystemTts {
             }
             // `--` ends option parsing so a selection beginning with '-' can't
             // be misread as a flag (e.g. `say -o` / `espeak-ng -w` write files).
-            cmd.arg("--").arg(text).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+            cmd.arg("--")
+                .arg(text)
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
             let child =
                 cmd.spawn().map_err(|e| EngineError::Tts(format!("failed to run `say`: {e}")))?;
             return Ok(Box::new(ChildPlayback {
@@ -95,10 +99,15 @@ impl SpeechSynthesizer for SystemTts {
                 let rate = (((opts.rate - 1.0) * 100.0).clamp(-100.0, 100.0)) as i32;
                 let mut cmd = Command::new("spd-say");
                 cmd.arg("-r").arg(rate.to_string());
-                cmd.arg("--wait"); // keep the child alive while speaking so is_finished works
+                // keep the child alive while speaking so is_finished works
+                cmd.arg("--wait");
                 // `--` ends option parsing so a selection beginning with '-' can't
                 // be misread as a flag (e.g. `say -o` / `espeak-ng -w` write files).
-                cmd.arg("--").arg(text).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+                cmd.arg("--")
+                    .arg(text)
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null());
                 let child = cmd
                     .spawn()
                     .map_err(|e| EngineError::Tts(format!("failed to run spd-say: {e}")))?;
@@ -113,7 +122,11 @@ impl SpeechSynthesizer for SystemTts {
                 cmd.arg("-s").arg(wpm.to_string());
                 // `--` ends option parsing so a selection beginning with '-' can't
                 // be misread as a flag (e.g. `say -o` / `espeak-ng -w` write files).
-                cmd.arg("--").arg(text).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+                cmd.arg("--")
+                    .arg(text)
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null());
                 let child = cmd
                     .spawn()
                     .map_err(|e| EngineError::Tts(format!("failed to run espeak-ng: {e}")))?;

@@ -80,13 +80,7 @@ pub fn evdev_readable() -> bool {
 pub async fn atspi_bus_address() -> Option<String> {
     let conn = zbus::Connection::session().await.ok()?;
     let reply = conn
-        .call_method(
-            Some("org.a11y.Bus"),
-            "/org/a11y/bus",
-            Some("org.a11y.Bus"),
-            "GetAddress",
-            &(),
-        )
+        .call_method(Some("org.a11y.Bus"), "/org/a11y/bus", Some("org.a11y.Bus"), "GetAddress", &())
         .await
         .ok()?;
     reply.body().deserialize::<String>().ok()

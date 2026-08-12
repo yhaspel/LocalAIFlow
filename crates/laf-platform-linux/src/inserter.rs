@@ -73,7 +73,12 @@ impl TextInserter for LinuxInserter {
                 if let Some(wtype) = which("wtype") {
                     match Command::new(&wtype).arg("--").arg(text).output() {
                         Ok(out) if out.status.success() => {
-                            return Ok(report(InsertionMethod::SyntheticKeys { tool: "wtype".into() }, text, t0, notes));
+                            return Ok(report(
+                                InsertionMethod::SyntheticKeys { tool: "wtype".into() },
+                                text,
+                                t0,
+                                notes,
+                            ));
                         }
                         Ok(out) => notes.push(format!(
                             "wtype failed (compositor without zwp_virtual_keyboard_v1?): {}",
@@ -88,7 +93,12 @@ impl TextInserter for LinuxInserter {
                     if ydotoold_socket().is_some() {
                         match Command::new("ydotool").args(["type", "--"]).arg(text).output() {
                             Ok(out) if out.status.success() => {
-                                return Ok(report(InsertionMethod::SyntheticKeys { tool: "ydotool".into() }, text, t0, notes));
+                                return Ok(report(
+                                    InsertionMethod::SyntheticKeys { tool: "ydotool".into() },
+                                    text,
+                                    t0,
+                                    notes,
+                                ));
                             }
                             Ok(out) => notes.push(format!(
                                 "ydotool type failed: {}",
@@ -111,7 +121,12 @@ impl TextInserter for LinuxInserter {
                         .output()
                     {
                         Ok(out) if out.status.success() => {
-                            return Ok(report(InsertionMethod::SyntheticKeys { tool: "xdotool".into() }, text, t0, notes));
+                            return Ok(report(
+                                InsertionMethod::SyntheticKeys { tool: "xdotool".into() },
+                                text,
+                                t0,
+                                notes,
+                            ));
                         }
                         Ok(out) => notes.push(format!(
                             "xdotool type failed: {}",
@@ -221,5 +236,7 @@ pub fn primary_selection() -> Option<String> {
 
 /// Set clipboard (used by the selection reader's Ctrl+C fallback restore).
 pub fn set_clipboard(text: String) -> bool {
-    Clipboard::new().and_then(|mut cb| cb.set().clipboard(LinuxClipboardKind::Clipboard).text(text)).is_ok()
+    Clipboard::new()
+        .and_then(|mut cb| cb.set().clipboard(LinuxClipboardKind::Clipboard).text(text))
+        .is_ok()
 }

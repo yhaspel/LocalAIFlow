@@ -116,9 +116,7 @@ mod tests {
         let n = (total_ms / 20).max(1);
         (0..n)
             .map(|i| {
-                (0..320)
-                    .map(|j| level * ((i * 320 + j) as f32 * 0.3).sin())
-                    .collect::<Vec<f32>>()
+                (0..320).map(|j| level * ((i * 320 + j) as f32 * 0.3).sin()).collect::<Vec<f32>>()
             })
             .collect()
     }

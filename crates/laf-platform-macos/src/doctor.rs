@@ -22,7 +22,11 @@ pub fn doctor() -> DoctorReport {
     });
 
     checks.push(if permissions::input_monitoring_granted() {
-        DoctorCheck::ok("mac.input_monitoring", "Input Monitoring", "granted (not required by current hotkey design; informational)")
+        DoctorCheck::ok(
+            "mac.input_monitoring",
+            "Input Monitoring",
+            "granted (not required by current hotkey design; informational)",
+        )
     } else {
         DoctorCheck::warn(
             "mac.input_monitoring",

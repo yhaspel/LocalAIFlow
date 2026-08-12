@@ -10,9 +10,9 @@
 
 use crate::audio::{open_playback, PcmControl};
 use crate::textseg::tts_chunks;
-use laf_kokoro::{load_voice_style, KokoroTTS, TTSConfig, VoiceStyle};
 use laf_core::traits::{SpeechSynthesizer, TtsOptions, TtsPlayback};
 use laf_core::types::{EngineError, EngineInfo, EngineResult, VoiceInfo};
+use laf_kokoro::{load_voice_style, KokoroTTS, TTSConfig, VoiceStyle};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -179,7 +179,11 @@ impl SpeechSynthesizer for KokoroEngine {
     }
 
     fn info(&self) -> EngineInfo {
-        EngineInfo { name: "kokoro", model: Some("Kokoro-82M v1.0 (ONNX)".into()), accelerated: false }
+        EngineInfo {
+            name: "kokoro",
+            model: Some("Kokoro-82M v1.0 (ONNX)".into()),
+            accelerated: false,
+        }
     }
 
     fn unload(&self) {

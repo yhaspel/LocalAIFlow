@@ -72,8 +72,7 @@ impl SpeechToText for WhisperKitStt {
             .spawn()
             .map_err(|e| EngineError::Stt(format!("whisperkit helper spawn: {e}")))?;
         let stdin = child.stdin.take();
-        let stdout =
-            child.stdout.take().ok_or_else(|| EngineError::Stt("helper stdout".into()))?;
+        let stdout = child.stdout.take().ok_or_else(|| EngineError::Stt("helper stdout".into()))?;
         let (tx, rx) = unbounded::<SttEvent>();
         let reader = std::thread::Builder::new()
             .name("laf-whisperkit-read".into())
@@ -83,16 +82,18 @@ impl SpeechToText for WhisperKitStt {
                     if let Some(t) = v.get("partial").and_then(|x| x.as_str()) {
                         let _ = tx.send(SttEvent::Partial { text: t.to_string() });
                     } else if let Some(t) = v.get("final").and_then(|x| x.as_str()) {
-                        let _ = tx.send(SttEvent::Final {
-                            text: t.to_string(),
-                            t0_ms: 0,
-                            t1_ms: 0,
-                        });
+                        let _ =
+                            tx.send(SttEvent::Final { text: t.to_string(), t0_ms: 0, t1_ms: 0 });
                     }
                 }
             })
             .map_err(|e| EngineError::Stt(format!("spawn reader: {e}")))?;
-        Ok(Box::new(WhisperKitSession { child: Some(child), stdin, events: rx, reader: Some(reader) }))
+        Ok(Box::new(WhisperKitSession {
+            child: Some(child),
+            stdin,
+            events: rx,
+            reader: Some(reader),
+        }))
     }
 
     fn info(&self) -> EngineInfo {

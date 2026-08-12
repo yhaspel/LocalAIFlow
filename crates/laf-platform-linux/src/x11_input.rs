@@ -23,8 +23,8 @@ pub fn send_ctrl_c() -> EngineResult<()> {
 }
 
 fn send_chord(modifier_sym: u32, key_sym: u32) -> EngineResult<()> {
-    let (conn, screen_num) = x11rb::connect(None)
-        .map_err(|e| EngineError::Insertion(format!("X11 connect: {e}")))?;
+    let (conn, screen_num) =
+        x11rb::connect(None).map_err(|e| EngineError::Insertion(format!("X11 connect: {e}")))?;
     let root = conn.setup().roots[screen_num].root;
 
     let modifier = keycode_for(&conn, modifier_sym)?

@@ -34,7 +34,9 @@ extern "C" {
         settable: *mut u8, // Boolean
     ) -> AXError;
     pub fn AXIsProcessTrusted() -> u8;
-    pub fn AXIsProcessTrustedWithOptions(options: core_foundation::dictionary::CFDictionaryRef) -> u8;
+    pub fn AXIsProcessTrustedWithOptions(
+        options: core_foundation::dictionary::CFDictionaryRef,
+    ) -> u8;
     pub static kAXTrustedCheckOptionPrompt: CFStringRef;
 }
 

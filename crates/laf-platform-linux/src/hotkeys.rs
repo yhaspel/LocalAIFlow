@@ -84,8 +84,8 @@ impl HotkeyBackend for LinuxHotkeys {
                                 }
                                 Err(e) => {
                                     return Err(EngineError::Hotkey(format!(
-                                        "no hotkey backend available: portal: {portal_err}; evdev: {e}"
-                                    )))
+                                    "no hotkey backend available: portal: {portal_err}; evdev: {e}"
+                                )))
                                 }
                             }
                         } else {
@@ -189,8 +189,7 @@ impl X11Backend {
         GlobalHotKeyEvent::set_event_handler(Some(move |ev: GlobalHotKeyEvent| {
             let action = map.lock().expect("id map").get(&ev.id()).copied();
             if let Some(action) = action {
-                let edge =
-                    if ev.state() == HotKeyState::Pressed { Edge::Down } else { Edge::Up };
+                let edge = if ev.state() == HotKeyState::Pressed { Edge::Down } else { Edge::Up };
                 let _ = tx.send(HotkeyEvent { action, edge });
             }
         }));
@@ -303,9 +302,8 @@ async fn portal_loop(
             NewShortcut::new(id.clone(), describe(*action)).preferred_trigger(trigger.as_str())
         })
         .collect();
-    let request = gs
-        .bind_shortcuts(&session, &new_shortcuts, None, BindShortcutsOptions::default())
-        .await?;
+    let request =
+        gs.bind_shortcuts(&session, &new_shortcuts, None, BindShortcutsOptions::default()).await?;
     // Wait for the user/portal to confirm the binding.
     let _ = request.response();
 
@@ -361,10 +359,8 @@ impl EvdevBackend {
         parsed: &[(HotkeyAction, ParsedBinding)],
         tx: Sender<HotkeyEvent>,
     ) -> EngineResult<Self> {
-        let combos: Vec<(HotkeyAction, EvdevCombo)> = parsed
-            .iter()
-            .filter_map(|(a, b)| evdev_combo(b).map(|c| (*a, c)))
-            .collect();
+        let combos: Vec<(HotkeyAction, EvdevCombo)> =
+            parsed.iter().filter_map(|(a, b)| evdev_combo(b).map(|c| (*a, c))).collect();
         if combos.is_empty() {
             return Err(EngineError::Hotkey("no binding could be mapped to evdev keys".into()));
         }
@@ -433,29 +429,65 @@ fn code_to_evdev(code: &str) -> Option<evdev::KeyCode> {
     if let Some(l) = code.strip_prefix("Key") {
         let c = l.chars().next()?;
         return Some(match c {
-            'A' => Key::KEY_A, 'B' => Key::KEY_B, 'C' => Key::KEY_C, 'D' => Key::KEY_D,
-            'E' => Key::KEY_E, 'F' => Key::KEY_F, 'G' => Key::KEY_G, 'H' => Key::KEY_H,
-            'I' => Key::KEY_I, 'J' => Key::KEY_J, 'K' => Key::KEY_K, 'L' => Key::KEY_L,
-            'M' => Key::KEY_M, 'N' => Key::KEY_N, 'O' => Key::KEY_O, 'P' => Key::KEY_P,
-            'Q' => Key::KEY_Q, 'R' => Key::KEY_R, 'S' => Key::KEY_S, 'T' => Key::KEY_T,
-            'U' => Key::KEY_U, 'V' => Key::KEY_V, 'W' => Key::KEY_W, 'X' => Key::KEY_X,
-            'Y' => Key::KEY_Y, 'Z' => Key::KEY_Z,
+            'A' => Key::KEY_A,
+            'B' => Key::KEY_B,
+            'C' => Key::KEY_C,
+            'D' => Key::KEY_D,
+            'E' => Key::KEY_E,
+            'F' => Key::KEY_F,
+            'G' => Key::KEY_G,
+            'H' => Key::KEY_H,
+            'I' => Key::KEY_I,
+            'J' => Key::KEY_J,
+            'K' => Key::KEY_K,
+            'L' => Key::KEY_L,
+            'M' => Key::KEY_M,
+            'N' => Key::KEY_N,
+            'O' => Key::KEY_O,
+            'P' => Key::KEY_P,
+            'Q' => Key::KEY_Q,
+            'R' => Key::KEY_R,
+            'S' => Key::KEY_S,
+            'T' => Key::KEY_T,
+            'U' => Key::KEY_U,
+            'V' => Key::KEY_V,
+            'W' => Key::KEY_W,
+            'X' => Key::KEY_X,
+            'Y' => Key::KEY_Y,
+            'Z' => Key::KEY_Z,
             _ => return None,
         });
     }
     if let Some(d) = code.strip_prefix("Digit") {
         return Some(match d {
-            "0" => Key::KEY_0, "1" => Key::KEY_1, "2" => Key::KEY_2, "3" => Key::KEY_3,
-            "4" => Key::KEY_4, "5" => Key::KEY_5, "6" => Key::KEY_6, "7" => Key::KEY_7,
-            "8" => Key::KEY_8, "9" => Key::KEY_9,
+            "0" => Key::KEY_0,
+            "1" => Key::KEY_1,
+            "2" => Key::KEY_2,
+            "3" => Key::KEY_3,
+            "4" => Key::KEY_4,
+            "5" => Key::KEY_5,
+            "6" => Key::KEY_6,
+            "7" => Key::KEY_7,
+            "8" => Key::KEY_8,
+            "9" => Key::KEY_9,
             _ => return None,
         });
     }
     if let Some(f) = code.strip_prefix('F') {
         if let Ok(n) = f.parse::<u8>() {
             let keys = [
-                Key::KEY_F1, Key::KEY_F2, Key::KEY_F3, Key::KEY_F4, Key::KEY_F5, Key::KEY_F6,
-                Key::KEY_F7, Key::KEY_F8, Key::KEY_F9, Key::KEY_F10, Key::KEY_F11, Key::KEY_F12,
+                Key::KEY_F1,
+                Key::KEY_F2,
+                Key::KEY_F3,
+                Key::KEY_F4,
+                Key::KEY_F5,
+                Key::KEY_F6,
+                Key::KEY_F7,
+                Key::KEY_F8,
+                Key::KEY_F9,
+                Key::KEY_F10,
+                Key::KEY_F11,
+                Key::KEY_F12,
             ];
             return keys.get((n as usize).checked_sub(1)?).copied();
         }

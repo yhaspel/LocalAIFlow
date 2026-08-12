@@ -86,9 +86,8 @@ async fn find_focused_editable() -> EngineResult<(String, String, zbus::Connecti
         .await
         .map_err(|e| EngineError::Insertion(format!("registry children: {e}")))?;
 
-    let rule = ObjectMatchRule::builder()
-        .states(StateSet::new(State::Focused), MatchType::All)
-        .build();
+    let rule =
+        ObjectMatchRule::builder().states(StateSet::new(State::Focused), MatchType::All).build();
 
     for app in apps.into_iter().take(MAX_APPS) {
         // ObjectRefOwned::name() is None for the null object — skip those.
@@ -101,11 +100,11 @@ async fn find_focused_editable() -> EngineResult<(String, String, zbus::Connecti
             continue;
         };
         let Ok(collection) = builder.build().await else { continue };
-        let matches = match collection.get_matches(rule.clone(), SortOrder::Canonical, 1, false).await
-        {
-            Ok(m) => m,
-            Err(_) => continue, // app without Collection support
-        };
+        let matches =
+            match collection.get_matches(rule.clone(), SortOrder::Canonical, 1, false).await {
+                Ok(m) => m,
+                Err(_) => continue, // app without Collection support
+            };
         let Some(hit) = matches.into_iter().next() else { continue };
         let Some(dest) = hit.name().map(|n| n.to_string()) else { continue };
         let path = hit.path().to_string();

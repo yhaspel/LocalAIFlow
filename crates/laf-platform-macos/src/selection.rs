@@ -44,8 +44,7 @@ impl SelectionReader for MacSelectionReader {
                 "reading the selection needs the Accessibility permission".into(),
             ));
         }
-        let mut cb =
-            Clipboard::new().map_err(|e| EngineError::Tts(format!("pasteboard: {e}")))?;
+        let mut cb = Clipboard::new().map_err(|e| EngineError::Tts(format!("pasteboard: {e}")))?;
         let previous = cb.get_text().ok();
         send_cmd_key(KEYCODE_C).map_err(EngineError::Tts)?;
         std::thread::sleep(Duration::from_millis(250));

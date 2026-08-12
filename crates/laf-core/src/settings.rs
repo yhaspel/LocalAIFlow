@@ -150,18 +150,14 @@ impl Default for Settings {
 
 /// App config directory (settings). Created on demand.
 pub fn config_dir() -> PathBuf {
-    dirs::config_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join(APP_DIR_NAME)
+    dirs::config_dir().unwrap_or_else(|| PathBuf::from(".")).join(APP_DIR_NAME)
 }
 
 /// App data directory (models live under `<data_dir>/models`).
 /// macOS: `~/Library/Application Support/LocalAIFlow`
 /// Linux: `$XDG_DATA_HOME/LocalAIFlow` (default `~/.local/share/LocalAIFlow`)
 pub fn data_dir() -> PathBuf {
-    dirs::data_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join(APP_DIR_NAME)
+    dirs::data_dir().unwrap_or_else(|| PathBuf::from(".")).join(APP_DIR_NAME)
 }
 
 /// Thread-safe settings store with atomic-rename persistence.

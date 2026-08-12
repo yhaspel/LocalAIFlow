@@ -42,11 +42,8 @@ pub fn post_format(mode: Mode, text: &str) -> String {
 fn to_bullets(text: &str) -> String {
     let mut items: Vec<String> = Vec::new();
     // Existing newlines/bullets win; otherwise split on sentence enders.
-    let candidates: Vec<&str> = if text.contains('\n') {
-        text.lines().collect()
-    } else {
-        split_sentences(text)
-    };
+    let candidates: Vec<&str> =
+        if text.contains('\n') { text.lines().collect() } else { split_sentences(text) };
     for c in candidates {
         let trimmed = c.trim().trim_start_matches(['-', '*', '•']).trim();
         if trimmed.is_empty() {
@@ -133,7 +130,8 @@ mod tests {
 
     #[test]
     fn email_mode_splits_greeting() {
-        let out = post_format(Mode::Email, "Hi Sarah, thanks for the update. I'll review it today.");
+        let out =
+            post_format(Mode::Email, "Hi Sarah, thanks for the update. I'll review it today.");
         assert!(out.starts_with("Hi Sarah,\n\n"));
     }
 

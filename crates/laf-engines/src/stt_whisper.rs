@@ -204,32 +204,31 @@ fn worker_loop(
         Ok(text.trim().to_string())
     };
 
-    let finalize_segment =
-        |state: &mut whisper_rs::WhisperState, buffer: &mut Vec<f32>, offset: &mut u64, decoded_upto: &mut usize| {
-            if (buffer.len() as f32) < MIN_DECODE_SECS * STT_SAMPLE_RATE as f32 {
-                *offset += (buffer.len() as u64 * 1000) / STT_SAMPLE_RATE as u64;
-                buffer.clear();
-                *decoded_upto = 0;
-                return;
-            }
-            let dur_ms = (buffer.len() as u64 * 1000) / STT_SAMPLE_RATE as u64;
-            match decode(state, buffer, &lang, &hints) {
-                Ok(text) if !text.is_empty() => {
-                    let _ = ev_tx.send(SttEvent::Final {
-                        text,
-                        t0_ms: *offset,
-                        t1_ms: *offset + dur_ms,
-                    });
-                }
-                Ok(_) => {}
-                Err(e) => {
-                    let _ = ev_tx.send(SttEvent::Error { message: e });
-                }
-            }
-            *offset += dur_ms;
+    let finalize_segment = |state: &mut whisper_rs::WhisperState,
+                            buffer: &mut Vec<f32>,
+                            offset: &mut u64,
+                            decoded_upto: &mut usize| {
+        if (buffer.len() as f32) < MIN_DECODE_SECS * STT_SAMPLE_RATE as f32 {
+            *offset += (buffer.len() as u64 * 1000) / STT_SAMPLE_RATE as u64;
             buffer.clear();
             *decoded_upto = 0;
-        };
+            return;
+        }
+        let dur_ms = (buffer.len() as u64 * 1000) / STT_SAMPLE_RATE as u64;
+        match decode(state, buffer, &lang, &hints) {
+            Ok(text) if !text.is_empty() => {
+                let _ =
+                    ev_tx.send(SttEvent::Final { text, t0_ms: *offset, t1_ms: *offset + dur_ms });
+            }
+            Ok(_) => {}
+            Err(e) => {
+                let _ = ev_tx.send(SttEvent::Error { message: e });
+            }
+        }
+        *offset += dur_ms;
+        buffer.clear();
+        *decoded_upto = 0;
+    };
 
     loop {
         let msg = match rx.recv() {
@@ -240,7 +239,12 @@ fn worker_loop(
             WorkerMsg::Audio(pcm) => {
                 buffer.extend_from_slice(&pcm);
                 if buffer.len() as f32 > MAX_SEGMENT_SECS * STT_SAMPLE_RATE as f32 {
-                    finalize_segment(&mut state, &mut buffer, &mut segment_offset_ms, &mut decoded_upto);
+                    finalize_segment(
+                        &mut state,
+                        &mut buffer,
+                        &mut segment_offset_ms,
+                        &mut decoded_upto,
+                    );
                     continue;
                 }
                 // Adaptive partial cadence: at least MIN_DECODE new audio and
@@ -249,7 +253,10 @@ fn worker_loop(
                 let min_gap_ms = last_decode_cost_ms.clamp(300, 1500);
                 let enough_new = new_samples as f32 >= 0.5 * STT_SAMPLE_RATE as f32;
                 let long_enough = buffer.len() as f32 >= MIN_DECODE_SECS * STT_SAMPLE_RATE as f32;
-                if long_enough && enough_new && last_decode_at.elapsed().as_millis() as u64 >= min_gap_ms {
+                if long_enough
+                    && enough_new
+                    && last_decode_at.elapsed().as_millis() as u64 >= min_gap_ms
+                {
                     let t0 = Instant::now();
                     match decode(&mut state, &buffer, &lang, &hints) {
                         Ok(text) => {
@@ -267,10 +274,20 @@ fn worker_loop(
                 }
             }
             WorkerMsg::Boundary => {
-                finalize_segment(&mut state, &mut buffer, &mut segment_offset_ms, &mut decoded_upto);
+                finalize_segment(
+                    &mut state,
+                    &mut buffer,
+                    &mut segment_offset_ms,
+                    &mut decoded_upto,
+                );
             }
             WorkerMsg::Flush => {
-                finalize_segment(&mut state, &mut buffer, &mut segment_offset_ms, &mut decoded_upto);
+                finalize_segment(
+                    &mut state,
+                    &mut buffer,
+                    &mut segment_offset_ms,
+                    &mut decoded_upto,
+                );
                 break;
             }
         }

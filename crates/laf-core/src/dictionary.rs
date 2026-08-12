@@ -33,8 +33,18 @@ impl Dictionary {
                 // characters, so only guard edges that ARE word characters
                 // (entries like "c++" need an unguarded right edge).
                 let trimmed = e.from.trim();
-                let left = if trimmed.chars().next().is_some_and(|c| c.is_alphanumeric() || c == '_') { r"\b" } else { "" };
-                let right = if trimmed.chars().last().is_some_and(|c| c.is_alphanumeric() || c == '_') { r"\b" } else { "" };
+                let left =
+                    if trimmed.chars().next().is_some_and(|c| c.is_alphanumeric() || c == '_') {
+                        r"\b"
+                    } else {
+                        ""
+                    };
+                let right =
+                    if trimmed.chars().last().is_some_and(|c| c.is_alphanumeric() || c == '_') {
+                        r"\b"
+                    } else {
+                        ""
+                    };
                 let pattern = format!("{left}{}{right}", escape(trimmed));
                 RegexBuilder::new(&pattern)
                     .case_insensitive(!e.match_case)

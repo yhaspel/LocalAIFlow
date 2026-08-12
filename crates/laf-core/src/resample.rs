@@ -129,8 +129,9 @@ mod tests {
     fn preserves_tone_level() {
         // A 440 Hz tone at 48k should come through ~unattenuated at 16k.
         let mut r = Resampler::new(48_000, 1);
-        let input: Vec<f32> =
-            (0..48_000).map(|i| (2.0 * std::f32::consts::PI * 440.0 * i as f32 / 48_000.0).sin()).collect();
+        let input: Vec<f32> = (0..48_000)
+            .map(|i| (2.0 * std::f32::consts::PI * 440.0 * i as f32 / 48_000.0).sin())
+            .collect();
         let out = r.process(&input);
         let rms_in = (input.iter().map(|s| s * s).sum::<f32>() / input.len() as f32).sqrt();
         let rms_out = (out.iter().map(|s| s * s).sum::<f32>() / out.len() as f32).sqrt();

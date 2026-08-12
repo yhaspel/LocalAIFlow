@@ -20,7 +20,13 @@ pub struct ParsedBinding {
 
 impl ParsedBinding {
     pub fn parse(s: &str) -> Result<Self, String> {
-        let mut b = ParsedBinding { ctrl: false, alt: false, shift: false, meta: false, code: String::new() };
+        let mut b = ParsedBinding {
+            ctrl: false,
+            alt: false,
+            shift: false,
+            meta: false,
+            code: String::new(),
+        };
         for part in s.split('+').map(str::trim).filter(|p| !p.is_empty()) {
             match part.to_ascii_lowercase().as_str() {
                 "ctrl" | "control" => b.ctrl = true,
@@ -92,10 +98,33 @@ fn canonical_code(input: &str) -> Option<String> {
         }
     }
     let named = [
-        "Space", "Enter", "Tab", "Escape", "Backspace", "Delete", "Home", "End", "PageUp",
-        "PageDown", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Minus", "Equal",
-        "BracketLeft", "BracketRight", "Backslash", "Semicolon", "Quote", "Backquote", "Comma",
-        "Period", "Slash", "CapsLock", "Insert",
+        "Space",
+        "Enter",
+        "Tab",
+        "Escape",
+        "Backspace",
+        "Delete",
+        "Home",
+        "End",
+        "PageUp",
+        "PageDown",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "Minus",
+        "Equal",
+        "BracketLeft",
+        "BracketRight",
+        "Backslash",
+        "Semicolon",
+        "Quote",
+        "Backquote",
+        "Comma",
+        "Period",
+        "Slash",
+        "CapsLock",
+        "Insert",
     ];
     named.iter().find(|n| n.to_ascii_lowercase() == lower).map(|n| n.to_string())
 }

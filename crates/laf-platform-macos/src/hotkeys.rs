@@ -28,7 +28,12 @@ pub struct MacHotkeys {
 
 impl MacHotkeys {
     pub fn new(tx: Sender<HotkeyEvent>) -> Self {
-        Self { tx, manager: None, registered: Vec::new(), id_map: Arc::new(Mutex::new(HashMap::new())) }
+        Self {
+            tx,
+            manager: None,
+            registered: Vec::new(),
+            id_map: Arc::new(Mutex::new(HashMap::new())),
+        }
     }
 }
 

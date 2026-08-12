@@ -145,9 +145,15 @@ pub fn doctor() -> DoctorReport {
     }
 
     // ---- TTS ----
-    let espeak_lib = ["/usr/lib/aarch64-linux-gnu", "/usr/lib/x86_64-linux-gnu", "/usr/lib", "/usr/lib64", "/usr/local/lib"]
-        .iter()
-        .any(|d| std::path::Path::new(d).join("libespeak-ng.so.1").exists());
+    let espeak_lib = [
+        "/usr/lib/aarch64-linux-gnu",
+        "/usr/lib/x86_64-linux-gnu",
+        "/usr/lib",
+        "/usr/lib64",
+        "/usr/local/lib",
+    ]
+    .iter()
+    .any(|d| std::path::Path::new(d).join("libespeak-ng.so.1").exists());
     checks.push(if espeak_lib || which("espeak-ng").is_some() {
         DoctorCheck::ok("tts.espeak", "espeak-ng (Kokoro G2P)", "present")
     } else {
@@ -159,7 +165,11 @@ pub fn doctor() -> DoctorReport {
         )
     });
     checks.push(if which("spd-say").is_some() || which("espeak-ng").is_some() {
-        DoctorCheck::ok("tts.fallback", "System TTS fallback", "speech-dispatcher / espeak-ng available")
+        DoctorCheck::ok(
+            "tts.fallback",
+            "System TTS fallback",
+            "speech-dispatcher / espeak-ng available",
+        )
     } else {
         DoctorCheck::warn(
             "tts.fallback",

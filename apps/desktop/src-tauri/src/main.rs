@@ -249,11 +249,15 @@ fn platform_selection() -> Arc<dyn SelectionReader> {
 }
 
 #[cfg(target_os = "linux")]
-fn platform_hotkeys(tx: crossbeam_channel::Sender<laf_core::types::HotkeyEvent>) -> Box<dyn HotkeyBackend> {
+fn platform_hotkeys(
+    tx: crossbeam_channel::Sender<laf_core::types::HotkeyEvent>,
+) -> Box<dyn HotkeyBackend> {
     Box::new(laf_platform_linux::LinuxHotkeys::new(tx))
 }
 #[cfg(target_os = "macos")]
-fn platform_hotkeys(tx: crossbeam_channel::Sender<laf_core::types::HotkeyEvent>) -> Box<dyn HotkeyBackend> {
+fn platform_hotkeys(
+    tx: crossbeam_channel::Sender<laf_core::types::HotkeyEvent>,
+) -> Box<dyn HotkeyBackend> {
     Box::new(laf_platform_macos::MacHotkeys::new(tx))
 }
 

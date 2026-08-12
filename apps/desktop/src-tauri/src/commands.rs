@@ -16,7 +16,11 @@ pub fn settings_get(state: State<'_, App>) -> Settings {
 }
 
 #[tauri::command]
-pub fn settings_set(app: AppHandle, state: State<'_, App>, settings: Settings) -> Result<Vec<String>, String> {
+pub fn settings_set(
+    app: AppHandle,
+    state: State<'_, App>,
+    settings: Settings,
+) -> Result<Vec<String>, String> {
     let previous = state.settings.get();
     let new = state.settings.replace(settings);
     state.mm.set_offline(new.fully_offline);
@@ -40,11 +44,8 @@ pub fn settings_set(app: AppHandle, state: State<'_, App>, settings: Settings) -
         let bindings = new.hotkeys.clone();
         let (tx, rx) = std::sync::mpsc::channel();
         let _ = app.run_on_main_thread(move || {
-            let result = hotkeys
-                .lock()
-                .expect("hotkeys lock")
-                .rebind(&bindings)
-                .map_err(|e| e.to_string());
+            let result =
+                hotkeys.lock().expect("hotkeys lock").rebind(&bindings).map_err(|e| e.to_string());
             let _ = tx.send(result);
         });
         match rx.recv_timeout(std::time::Duration::from_secs(5)) {

@@ -177,7 +177,11 @@ impl Controller {
                 PipelineCmd::SetMode(m) => {
                     let idx = Mode::ALL.iter().position(|x| *x == m).unwrap_or(1) as u8;
                     self.mode_atomic.store(idx, Ordering::Relaxed);
-                    self.set_phase(if self.session.is_some() { Phase::Listening } else { Phase::Idle });
+                    self.set_phase(if self.session.is_some() {
+                        Phase::Listening
+                    } else {
+                        Phase::Idle
+                    });
                 }
                 PipelineCmd::Start(src) => self.start_dictation(src),
                 PipelineCmd::Stop(src) => {
@@ -344,7 +348,10 @@ impl Controller {
             Err(e) => self.emit(UiEvent::PipelineError { message: e.to_string() }),
         }
         self.metrics.record("stt_finalize", t_final.elapsed().as_millis() as u64);
-        self.emit(UiEvent::Latency { stage: "stt_finalize".into(), ms: t_final.elapsed().as_millis() as u64 });
+        self.emit(UiEvent::Latency {
+            stage: "stt_finalize".into(),
+            ms: t_final.elapsed().as_millis() as u64,
+        });
 
         let s = self.settings.get();
         let remaining: Vec<String> = self.finals.drain(self.inserted_segments..).collect();
@@ -438,9 +445,9 @@ impl Controller {
                 self.metrics.record("insert", t_insert.elapsed().as_millis() as u64);
                 self.emit(UiEvent::Inserted { report, text: payload });
             }
-            Err(e) => self.emit(UiEvent::PipelineError {
-                message: format!("could not insert text: {e}"),
-            }),
+            Err(e) => {
+                self.emit(UiEvent::PipelineError { message: format!("could not insert text: {e}") })
+            }
         }
         if incremental {
             self.set_phase(Phase::Listening);
@@ -471,12 +478,8 @@ impl Controller {
         let t0 = Instant::now();
 
         // Prefer the configured engine, then fall through the chain.
-        let mut ordered: Vec<&Arc<dyn SpeechSynthesizer>> = self
-            .engines
-            .tts_engines
-            .iter()
-            .filter(|e| e.info().name == s.tts.engine)
-            .collect();
+        let mut ordered: Vec<&Arc<dyn SpeechSynthesizer>> =
+            self.engines.tts_engines.iter().filter(|e| e.info().name == s.tts.engine).collect();
         ordered.extend(self.engines.tts_engines.iter().filter(|e| e.info().name != s.tts.engine));
 
         let mut last_err: Option<EngineError> = None;

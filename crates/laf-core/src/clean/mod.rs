@@ -84,8 +84,7 @@ fn strip_llm_wrapping(s: &str) -> String {
     }
     if t.len() >= 2 {
         let b = t.as_bytes();
-        if (b[0] == b'"' && b[t.len() - 1] == b'"') || (b[0] == b'\'' && b[t.len() - 1] == b'\'')
-        {
+        if (b[0] == b'"' && b[t.len() - 1] == b'"') || (b[0] == b'\'' && b[t.len() - 1] == b'\'') {
             let inner = &t[1..t.len() - 1];
             // Only unwrap if the interior has no matching quote (i.e. the
             // pair is wrapping, not content).

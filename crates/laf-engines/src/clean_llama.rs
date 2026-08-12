@@ -24,7 +24,9 @@ use std::time::Instant;
 fn backend() -> EngineResult<&'static LlamaBackend> {
     static BACKEND: OnceLock<Result<LlamaBackend, String>> = OnceLock::new();
     let r = BACKEND.get_or_init(|| {
-        llama_cpp_2::send_logs_to_tracing(llama_cpp_2::LogOptions::default().with_logs_enabled(false));
+        llama_cpp_2::send_logs_to_tracing(
+            llama_cpp_2::LogOptions::default().with_logs_enabled(false),
+        );
         LlamaBackend::init().map_err(|e| e.to_string())
     });
     r.as_ref().map_err(|e| EngineError::Cleanup(format!("llama backend init: {e}")))

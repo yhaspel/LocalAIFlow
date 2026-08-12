@@ -155,10 +155,7 @@ mod tests {
 
     #[test]
     fn delete_that_removes_previous_sentence() {
-        assert_eq!(
-            interpret("keep this period drop all of that delete that"),
-            "keep this."
-        );
+        assert_eq!(interpret("keep this period drop all of that delete that"), "keep this.");
         // Deleting with nothing before is harmless.
         assert_eq!(interpret("scratch that hello"), "hello");
     }

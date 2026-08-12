@@ -61,7 +61,10 @@ impl SpeechToText for DynamicStt {
         if rebuild {
             *guard = Some((
                 path.clone(),
-                Arc::new(laf_engines::stt_whisper::WhisperEngine::new(path, s.stt.model_id.clone())),
+                Arc::new(laf_engines::stt_whisper::WhisperEngine::new(
+                    path,
+                    s.stt.model_id.clone(),
+                )),
             ));
         }
         guard.as_ref().expect("just built").1.start_session(cfg)
@@ -82,7 +85,11 @@ impl SpeechToText for DynamicStt {
                 return e.info();
             }
         }
-        EngineInfo { name: "whisper", model: Some(self.settings.get().stt.model_id), accelerated: false }
+        EngineInfo {
+            name: "whisper",
+            model: Some(self.settings.get().stt.model_id),
+            accelerated: false,
+        }
     }
 
     fn unload(&self) {
@@ -115,9 +122,7 @@ impl DynamicCleaner {
     }
 
     #[cfg(feature = "llm-llama")]
-    fn llama_for_current_model(
-        &self,
-    ) -> EngineResult<Arc<laf_engines::clean_llama::LlamaCleaner>> {
+    fn llama_for_current_model(&self) -> EngineResult<Arc<laf_engines::clean_llama::LlamaCleaner>> {
         let s = self.settings.get();
         let path = self.mm.require(&s.cleaner.model_id)?;
         let mut guard = self.llama.lock().expect("llama lock");
@@ -125,7 +130,10 @@ impl DynamicCleaner {
         if rebuild {
             *guard = Some((
                 path.clone(),
-                Arc::new(laf_engines::clean_llama::LlamaCleaner::new(path, s.cleaner.model_id.clone())),
+                Arc::new(laf_engines::clean_llama::LlamaCleaner::new(
+                    path,
+                    s.cleaner.model_id.clone(),
+                )),
             ));
         }
         Ok(guard.as_ref().expect("just built").1.clone())
@@ -241,7 +249,11 @@ impl SpeechSynthesizer for DynamicKokoro {
         self.engine().map(|e| e.voices()).unwrap_or_default()
     }
     fn info(&self) -> EngineInfo {
-        EngineInfo { name: "kokoro", model: Some("Kokoro-82M v1.0 (ONNX)".into()), accelerated: false }
+        EngineInfo {
+            name: "kokoro",
+            model: Some("Kokoro-82M v1.0 (ONNX)".into()),
+            accelerated: false,
+        }
     }
     fn unload(&self) {
         if let Some((_, e)) = self.inner.lock().expect("kokoro lock").as_ref() {

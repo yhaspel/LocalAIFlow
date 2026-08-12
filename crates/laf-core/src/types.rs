@@ -32,10 +32,18 @@ impl AudioFrame {
 pub enum SttEvent {
     /// Rolling hypothesis for audio that is still being spoken. Replaces the
     /// previous partial wholesale (not appended).
-    Partial { text: String },
+    Partial {
+        text: String,
+    },
     /// A segment the engine considers final (speech followed by silence).
-    Final { text: String, t0_ms: u64, t1_ms: u64 },
-    Error { message: String },
+    Final {
+        text: String,
+        t0_ms: u64,
+        t1_ms: u64,
+    },
+    Error {
+        message: String,
+    },
 }
 
 /// Formatting modes, mirroring Wispr Flow's behavior.
@@ -60,15 +68,8 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub const ALL: [Mode; 7] = [
-        Mode::Raw,
-        Mode::Auto,
-        Mode::Email,
-        Mode::Message,
-        Mode::List,
-        Mode::Code,
-        Mode::Command,
-    ];
+    pub const ALL: [Mode; 7] =
+        [Mode::Raw, Mode::Auto, Mode::Email, Mode::Message, Mode::List, Mode::Code, Mode::Command];
 
     pub fn label(&self) -> &'static str {
         match self {
@@ -141,16 +142,42 @@ pub enum Phase {
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum UiEvent {
-    Phase { phase: Phase, mode: Mode },
-    Level { rms: f32, peak: f32 },
-    Partial { text: String },
-    FinalSegment { text: String },
-    Inserted { report: InsertionReport, text: String },
-    TtsStarted { chars: usize },
+    Phase {
+        phase: Phase,
+        mode: Mode,
+    },
+    Level {
+        rms: f32,
+        peak: f32,
+    },
+    Partial {
+        text: String,
+    },
+    FinalSegment {
+        text: String,
+    },
+    Inserted {
+        report: InsertionReport,
+        text: String,
+    },
+    TtsStarted {
+        chars: usize,
+    },
     TtsStopped,
-    PipelineError { message: String },
-    Latency { stage: String, ms: u64 },
-    ModelDownload { model_id: String, downloaded: u64, total: u64, done: bool, error: Option<String> },
+    PipelineError {
+        message: String,
+    },
+    Latency {
+        stage: String,
+        ms: u64,
+    },
+    ModelDownload {
+        model_id: String,
+        downloaded: u64,
+        total: u64,
+        done: bool,
+        error: Option<String>,
+    },
 }
 
 /// Hotkey-triggerable actions.

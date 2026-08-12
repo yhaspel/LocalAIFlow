@@ -82,12 +82,9 @@ impl SpeechSynthesizer for PiperTts {
             .piper_bin
             .clone()
             .ok_or_else(|| EngineError::Tts("piper binary not found on PATH".into()))?;
-        let voice = self
-            .voice_path(&opts.voice_id)
-            .ok_or_else(|| EngineError::Tts(format!(
-                "no piper voice model in {}",
-                self.voices_dir.display()
-            )))?;
+        let voice = self.voice_path(&opts.voice_id).ok_or_else(|| {
+            EngineError::Tts(format!("no piper voice model in {}", self.voices_dir.display()))
+        })?;
         let rate = Self::voice_rate(&voice);
         // Piper's length_scale is inverse speed.
         let length_scale = (1.0 / opts.rate.clamp(0.5, 2.0)).to_string();

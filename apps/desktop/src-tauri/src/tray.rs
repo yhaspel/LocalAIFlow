@@ -29,7 +29,8 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 }
 
 fn build_menu<R: Runtime>(app: &AppHandle<R>, current_mode: Mode) -> tauri::Result<Menu<R>> {
-    let start_stop = MenuItem::with_id(app, "toggle", "Start / Stop Dictation", true, None::<&str>)?;
+    let start_stop =
+        MenuItem::with_id(app, "toggle", "Start / Stop Dictation", true, None::<&str>)?;
     let read = MenuItem::with_id(app, "read", "Read Selection Aloud", true, None::<&str>)?;
     let stop_speech = MenuItem::with_id(app, "stopspeech", "Stop Speaking", true, None::<&str>)?;
 

@@ -72,8 +72,23 @@ pub fn normalize_whitespace(text: &str) -> String {
 
 /// Weekdays/months that STT often leaves lowercase.
 const PROPER_WORDS: &[&str] = &[
-    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "january",
-    "february", "march", "april", "june", "july", "august", "september", "october", "november",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+    "january",
+    "february",
+    "march",
+    "april",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
     "december",
 ];
 
@@ -165,7 +180,10 @@ mod tests {
 
     #[test]
     fn collapses_repeats() {
-        assert_eq!(collapse_false_starts("we we should ship the the thing"), "we should ship the thing");
+        assert_eq!(
+            collapse_false_starts("we we should ship the the thing"),
+            "we should ship the thing"
+        );
     }
 
     #[test]
@@ -177,11 +195,11 @@ mod tests {
 
     #[test]
     fn punctuation_and_caps() {
+        assert_eq!(punctuate_and_capitalize("hello world how are you"), "Hello world how are you.");
         assert_eq!(
-            punctuate_and_capitalize("hello world how are you"),
-            "Hello world how are you."
+            punctuate_and_capitalize("this works. it really does"),
+            "This works. It really does."
         );
-        assert_eq!(punctuate_and_capitalize("this works. it really does"), "This works. It really does.");
         assert_eq!(punctuate_and_capitalize("i'm sure i can"), "I'm sure I can.");
         assert_eq!(punctuate_and_capitalize("see you friday"), "See you Friday.");
         assert_eq!(punctuate_and_capitalize("wait , what ?"), "Wait, what?");
